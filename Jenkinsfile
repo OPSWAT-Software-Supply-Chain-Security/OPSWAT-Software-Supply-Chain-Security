@@ -1,15 +1,12 @@
 pipeline {
     agent any
-    tools { maven 'M3' }
+    tools { nodejs 'node20' }
     stages {
-        stage('Build') {
+        stage('Check') {
             steps {
-                sh 'mvn -B clean package -DskipTests'
-            }
-        }
-        stage('Archive') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.jar'
+                sh 'node -v'
+                sh 'npm -v'
+                sh 'ls -la'
             }
         }
     }
