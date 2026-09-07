@@ -17,9 +17,21 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'API_KEY', variable: 'MDSSC_API_KEY')]) {
                     sh 'docker run --rm --volumes-from jenkins -e MDSSC_SERVER -e MDSSC_API_KEY -e SCAN_TIMEOUT=600 opswat/mdssc-scanner:latest "${WORKSPACE}_scan/app.tar.gz"'
-                    sh 'rm -rf "${WORKSPACE}_scan"'
                 }
             }
+        }
+        stage('Upload to Nexus') {
+            steps {
+                echo "Nexus target: ${env.Nexus_Server}"
+                withCredentials([usernamePassword(credentialsId: 'Nexus_Cred', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh "curl -f -u \"\$NEXUS_USER:\$NEXUS_PASS\" --upload-file \"\${WORKSPACE}_scan/app.tar.gz\" \"${env.Nexus_Server}/sample-app/app-\${BUILD_NUMBER}.tar.gz\""
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh 'rm -rf "${WORKSPACE}_scan"'
         }
     }
 }
